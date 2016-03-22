@@ -2,7 +2,6 @@
 require 'yaml'
 require 'twitter'
 require 'docomoru'
-require 'pry'
 
 class Bot
   attr_accessor :client, :timeline
