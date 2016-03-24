@@ -38,17 +38,19 @@ class Bot
 end
 
 class ReplyEngine
-  def initialize(text='')
+  def initialize(text='', params={})
+    @opts = params
     @text = text
     env = YAML.load_file('./config.yml')
     @client = Docomoru::Client.new(api_key: env["docomo_api_key"])
   end
 
   def result
-    @client.create_dialogue(@text)
+    @client.create_dialogue(@text, @opts)
   end
 end
 
+@response_cache = {context: '', mode: ''}
 bot = Bot.new
 begin
   bot.timeline.user do |tw|
@@ -60,8 +62,12 @@ begin
       # Not RT and only reply to @korot0ro
       if !text.index("RT")
         if text.match(/^@korot0ro/)
-          rep_engine = ReplyEngine.new(text.sub(/^@korot0ro /,''))
-          reply_msg = rep_engine.result.body["utt"]
+          rep_engine = ReplyEngine.new(text.sub(/^@korot0ro /,''), @response_cache)
+          @result = rep_engine.result
+          @response_cache[:context] = @result.body["context"]
+          @response_cache[:mode] = @result.body["mode"]
+
+          reply_msg = @result.body["utt"]
           bot.post(reply_msg, tw_id: twitter_id, status_id: status_id)
           sleep 3
         end
