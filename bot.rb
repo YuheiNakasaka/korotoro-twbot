@@ -62,14 +62,18 @@ begin
       # Not RT and only reply to @korot0ro
       if !text.index("RT")
         if text.match(/^@korot0ro/)
-          rep_engine = ReplyEngine.new(text.sub(/^@korot0ro /,''), @response_cache)
-          @result = rep_engine.result
-          @response_cache[:context] = @result.body["context"]
-          @response_cache[:mode] = @result.body["mode"]
 
-          reply_msg = @result.body["utt"]
-          bot.post(reply_msg, tw_id: twitter_id, status_id: status_id)
-          sleep 3
+          Thread.new do
+            sleep 2
+            rep_engine = ReplyEngine.new(text.sub(/^@korot0ro /,''), @response_cache)
+            @result = rep_engine.result
+            @response_cache[:context] = @result.body["context"]
+            @response_cache[:mode] = @result.body["mode"]
+
+            reply_msg = @result.body["utt"]
+            bot.post(reply_msg, tw_id: twitter_id, status_id: status_id)
+          end
+
         end
       end
     end
